@@ -1,0 +1,295 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>eulerMethodSolver</title><meta name="generator" content="MATLAB 9.10"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2021-06-01"><meta name="DC.source" content="eulerMethodSolver.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="keyword">function</span> y = eulerMethodSolver(x,y, func)
+<span class="comment">%Takes in the function, x, and y arrays and solves using euler method, then</span>
+<span class="comment">%plots. It returns the y array updated with the solutions</span>
+<span class="comment">%   inputs: -array of x values (x and y array can be obtained from</span>
+<span class="comment">%            eulerMethodsetup)</span>
+<span class="comment">%           -array of y values (initial y value must already be correct)</span>
+<span class="comment">%           -the function to solve (as an anonymous function)</span>
+<span class="comment">%   outputs: y array now filled in with solutions</span>
+
+<span class="comment">%to avoid needing another input for this function, we just deduce what h is</span>
+h = x(end)/(length(x)-1);
+
+<span class="comment">%now we make h, x, and y for different stepsizes</span>
+hsmaller = h/10;
+xsmaller = [x(1):hsmaller:x(end)];
+ysmaller = zeros(size(xsmaller));
+ysmaller(1) = y(1);
+
+hbigger = h*10;
+xbigger = [x(1):hbigger:x(end)];
+ybigger = zeros(size(xbigger));
+ybigger(1) = y(1);
+
+<span class="comment">%solves ode for problem using what user input</span>
+<span class="keyword">for</span> i=2:numel(y)-1 <span class="comment">%starting at the second value</span>
+   y(i) = y(i-1) + h * func(x(i-1),y(i-1)); <span class="comment">%current value is based on this formula</span>
+<span class="keyword">end</span>
+<span class="comment">%solve ode for 10x smaller stepsize</span>
+<span class="keyword">for</span> i=2:numel(ysmaller)-1
+   ysmaller(i) = ysmaller(i-1) + hsmaller * func(xsmaller(i-1),ysmaller(i-1));
+<span class="keyword">end</span>
+<span class="comment">%solve ode for 10x larger stepsize</span>
+<span class="keyword">for</span> i=2:numel(ybigger)-1
+   ybigger(i) = ybigger(i-1) + hbigger * func(xbigger(i-1),ybigger(i-1));
+<span class="keyword">end</span>
+<span class="comment">%solve using matlab's ide solver</span>
+[odex, odey] = ode45(func,[0 x(end)], 1);
+<span class="comment">%solving all of this is just for the sake of comparison later</span>
+
+
+figure;
+plot(odex,odey, <span class="string">'b'</span>);<span class="comment">%we first plot the ode45 result to get correct axis</span>
+hold <span class="string">on</span>
+<span class="comment">%plot the other solutions</span>
+plot(x,y,<span class="string">'r'</span>);
+plot(xsmaller,ysmaller, <span class="string">'c'</span>);
+plot(xbigger,ybigger, <span class="string">'g'</span>);
+title(<span class="string">'All approximations'</span>);
+xlabel(<span class="string">'Select a point to compare approximations at that x-coordinate'</span>);
+<span class="comment">%make legend and turn autoupdate off so user input doesn't show up in legend</span>
+legend(<span class="string">'ode45'</span>,<span class="string">'user input'</span>,<span class="string">'smaller stepsize'</span>, <span class="string">'larger stepsize'</span>, <span class="string">'AutoUpdate'</span>, <span class="string">'off'</span>);
+
+[xi,yi] = ginput(1);<span class="comment">%store point that user selects</span>
+plot(xi,yi, <span class="string">'m*'</span>);<span class="comment">%plot the point and label it</span>
+text(xi+.1, yi, <span class="string">'User Selection'</span>, <span class="string">'color'</span>, <span class="string">'r'</span>);
+
+<span class="comment">%because each line has different x and y arrays, we have to find the</span>
+<span class="comment">%closest x value to the selected x value in each array, then find the y</span>
+<span class="comment">%value at that x value</span>
+[xclosest, xidx] = min(abs(x-xi));<span class="comment">%finds the closest x value to user input</span>
+xclosest = x(xidx);<span class="comment">%reset closest to be the x value at that index</span>
+[xsmallerclosest, xsmalleridx] = min(abs(xsmaller-xi));<span class="comment">%do the same for the rest</span>
+xsmallerclosest = xsmaller(xsmalleridx);
+[xbiggerclosest, xbiggeridx] = min(abs(xbigger-xi));
+xbiggerclosest = xbigger(xbiggeridx);
+[xodeclosest, xodeidx] = min(abs(odex-xi));
+xodeclosest = odex(xodeidx);
+<span class="comment">%display each closest x value and the y value that solution returned there</span>
+fprintf(<span class="string">'Approximations  at selected x value:\n'</span>)
+fprintf(<span class="string">'User input: (%f,%f)\nSmaller: (%f,%f)\nbigger: (%f,%f)\node45: (%f,%f)\n'</span>, xclosest, y(xidx), xsmallerclosest, ysmaller(xsmalleridx), xbiggerclosest, ybigger(xbiggeridx), xodeclosest, odey(xodeidx));
+<span class="comment">%new figure window with a title</span>
+figure(<span class="string">'Name'</span>, <span class="string">'Approximations Reparated with Relected Point Shown'</span>);
+<span class="comment">%we again plot the ode45 solution first to get proper axis scaling</span>
+subplot(2,2,4);
+plot(odex,odey, <span class="string">'b'</span>);
+hold <span class="string">on</span>
+grid <span class="string">on</span>
+v = axis;<span class="comment">%store the axis limits in v</span>
+title(<span class="string">'Graph using Matlab''s ode45 function'</span>);
+plot(xodeclosest, odey(xodeidx), <span class="string">'kp'</span>);<span class="comment">%we also plot the user selected point</span>
+hold <span class="string">off</span>
+<span class="comment">%We now plot the other solutions in each subplot</span>
+subplot(2,2,1);
+plot(x,y, <span class="string">'r'</span>);
+hold <span class="string">on</span>
+plot(xclosest, y(xidx), <span class="string">'gx'</span>);
+hold <span class="string">off</span>
+grid <span class="string">on</span>
+axis([v]);<span class="comment">%make sure each axis is the same</span>
+title(<span class="string">'Graph using user input stepsize'</span>);
+
+subplot(2,2,2);
+plot(xsmaller,ysmaller, <span class="string">'c'</span>);
+grid <span class="string">on</span>
+axis([v]);
+title(<span class="string">'Graph using stepsize 10x smaller'</span>);
+hold <span class="string">on</span>
+plot(xsmallerclosest, ysmaller(xsmalleridx), <span class="string">'ms'</span>);
+hold <span class="string">off</span>
+
+subplot(2,2,3);
+plot(xbigger,ybigger, <span class="string">'g'</span>);
+grid <span class="string">on</span>
+axis([v]);
+title(<span class="string">'Graph using stepsize 10x bigger'</span>);
+hold <span class="string">on</span>
+plot(xbiggerclosest, ybigger(xbiggeridx), <span class="string">'r+'</span>);
+hold <span class="string">off</span>
+
+<span class="keyword">end</span>
+</pre><p class="footer"><br><a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2021a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function y = eulerMethodSolver(x,y, func)
+%Takes in the function, x, and y arrays and solves using euler method, then
+%plots. It returns the y array updated with the solutions 
+%   inputs: -array of x values (x and y array can be obtained from
+%            eulerMethodsetup)
+%           -array of y values (initial y value must already be correct)
+%           -the function to solve (as an anonymous function)
+%   outputs: y array now filled in with solutions
+
+%to avoid needing another input for this function, we just deduce what h is
+h = x(end)/(length(x)-1);
+
+%now we make h, x, and y for different stepsizes
+hsmaller = h/10;
+xsmaller = [x(1):hsmaller:x(end)];
+ysmaller = zeros(size(xsmaller));
+ysmaller(1) = y(1);
+
+hbigger = h*10;
+xbigger = [x(1):hbigger:x(end)];
+ybigger = zeros(size(xbigger));
+ybigger(1) = y(1);
+
+%solves ode for problem using what user input
+for i=2:numel(y)-1 %starting at the second value
+   y(i) = y(i-1) + h * func(x(i-1),y(i-1)); %current value is based on this formula
+end
+%solve ode for 10x smaller stepsize
+for i=2:numel(ysmaller)-1
+   ysmaller(i) = ysmaller(i-1) + hsmaller * func(xsmaller(i-1),ysmaller(i-1));
+end
+%solve ode for 10x larger stepsize
+for i=2:numel(ybigger)-1
+   ybigger(i) = ybigger(i-1) + hbigger * func(xbigger(i-1),ybigger(i-1));
+end
+%solve using matlab's ide solver
+[odex, odey] = ode45(func,[0 x(end)], 1);
+%solving all of this is just for the sake of comparison later
+
+
+figure;
+plot(odex,odey, 'b');%we first plot the ode45 result to get correct axis
+hold on 
+%plot the other solutions
+plot(x,y,'r');
+plot(xsmaller,ysmaller, 'c');
+plot(xbigger,ybigger, 'g');
+title('All approximations');
+xlabel('Select a point to compare approximations at that x-coordinate');
+%make legend and turn autoupdate off so user input doesn't show up in legend
+legend('ode45','user input','smaller stepsize', 'larger stepsize', 'AutoUpdate', 'off');
+
+[xi,yi] = ginput(1);%store point that user selects
+plot(xi,yi, 'm*');%plot the point and label it
+text(xi+.1, yi, 'User Selection', 'color', 'r'); 
+
+%because each line has different x and y arrays, we have to find the
+%closest x value to the selected x value in each array, then find the y
+%value at that x value
+[xclosest, xidx] = min(abs(x-xi));%finds the closest x value to user input
+xclosest = x(xidx);%reset closest to be the x value at that index
+[xsmallerclosest, xsmalleridx] = min(abs(xsmaller-xi));%do the same for the rest
+xsmallerclosest = xsmaller(xsmalleridx);
+[xbiggerclosest, xbiggeridx] = min(abs(xbigger-xi));
+xbiggerclosest = xbigger(xbiggeridx);
+[xodeclosest, xodeidx] = min(abs(odex-xi));
+xodeclosest = odex(xodeidx);
+%display each closest x value and the y value that solution returned there
+fprintf('Approximations  at selected x value:\n')
+fprintf('User input: (%f,%f)\nSmaller: (%f,%f)\nbigger: (%f,%f)\node45: (%f,%f)\n', xclosest, y(xidx), xsmallerclosest, ysmaller(xsmalleridx), xbiggerclosest, ybigger(xbiggeridx), xodeclosest, odey(xodeidx));
+%new figure window with a title
+figure('Name', 'Approximations Reparated with Relected Point Shown');
+%we again plot the ode45 solution first to get proper axis scaling
+subplot(2,2,4);
+plot(odex,odey, 'b');
+hold on
+grid on
+v = axis;%store the axis limits in v
+title('Graph using Matlab''s ode45 function');
+plot(xodeclosest, odey(xodeidx), 'kp');%we also plot the user selected point
+hold off
+%We now plot the other solutions in each subplot
+subplot(2,2,1);
+plot(x,y, 'r');
+hold on
+plot(xclosest, y(xidx), 'gx');
+hold off
+grid on
+axis([v]);%make sure each axis is the same
+title('Graph using user input stepsize');
+
+subplot(2,2,2);
+plot(xsmaller,ysmaller, 'c');
+grid on
+axis([v]);
+title('Graph using stepsize 10x smaller');
+hold on 
+plot(xsmallerclosest, ysmaller(xsmalleridx), 'ms');
+hold off
+
+subplot(2,2,3);
+plot(xbigger,ybigger, 'g');
+grid on
+axis([v]);
+title('Graph using stepsize 10x bigger');
+hold on 
+plot(xbiggerclosest, ybigger(xbiggeridx), 'r+');
+hold off
+
+end
+
+
+##### SOURCE END #####
+--></body></html>
